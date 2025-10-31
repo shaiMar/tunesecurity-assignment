@@ -9,6 +9,7 @@ This is a command-line trivia/game application built in Python. The project impl
 tunesecurity/
 ├── trivia.py          # Main game logic and TurnBaseGame class
 ├── player.py          # Player class definition
+├── display.py         # Display/UI functions for terminal output
 ├── run_game.py        # Command-line argument parser and game launcher
 ├── requirements.txt   # Python dependencies (standard library only)
 └── CONTEXT.md         # This file - project documentation
@@ -20,14 +21,21 @@ tunesecurity/
 Main game engine containing:
 - `TurnBaseGame` class - Core game logic and flow control
 - `MenuOption` classes - Game menu options (Skip, Cancel, Continue)
-- Game display and turn management
-- Scoring system based on character counting (n, m, v)
+- Turn management and game state
+- Input handling and game flow
 
 ### player.py
 Player management module containing:
 - `Player` class - Represents individual players
 - Player state tracking (name, inputs, score)
-- Score calculation logic
+- Score calculation logic based on character counting (n, m, v)
+
+### display.py
+Display/UI module containing:
+- `clear_screen()` - Clear terminal screen
+- `display_player_turn_screen()` - Show current turn information
+- `display_results()` - Show final game results and winner
+- All terminal output formatting and UI elements
 
 ### run_game.py
 Command-line interface containing:
@@ -86,7 +94,8 @@ Players earn points based on character count in their inputs:
 ### Adding New Features
 1. Game logic modifications go in `trivia.py`
 2. Player-related features go in `player.py`
-3. CLI changes go in `run_game.py`
+3. Display/UI changes go in `display.py`
+4. CLI argument parsing changes go in `run_game.py`
 
 ### Testing
 Run the game with test players:

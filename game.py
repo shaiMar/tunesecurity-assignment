@@ -127,6 +127,45 @@ class DouGame:
         """Clear the terminal screen."""
         os.system('cls' if os.name == 'nt' else 'clear')
     
+    def _display_player_turn_screen(self, player, player_index, turn_number):
+        """
+        Display the player turn screen with current player, other players, and help info.
+        
+        Args:
+            player (Player): The current player object
+            player_index (int): Index of the player in the players list
+            turn_number (int): Current turn number
+        """
+        # Clear screen for fresh display
+        self._clear_screen()
+        
+        # Get all other players (non-current players)
+        other_players = [p for i, p in enumerate(self.players) if i != player_index]
+        
+        # Get terminal width for positioning (default to 80 if can't determine)
+        try:
+            terminal_width = os.get_terminal_size().columns
+        except:
+            terminal_width = 80
+        
+        # Show current player's name on left, all other players with scores in brackets on right
+        if len(other_players) == 1:
+            other_players_text = f"[{other_players[0].name}:{other_players[0].get_score()}]"
+        else:
+            other_names_with_scores = ", ".join([f"{p.name}:{p.get_score()}" for p in other_players])
+            other_players_text = f"[{other_names_with_scores}]"
+        
+        spaces_needed = terminal_width - len(player.name) - len(other_players_text)
+        if spaces_needed < 1:
+            spaces_needed = 1
+        
+        print(f"{player.name}{' ' * spaces_needed}{other_players_text}")
+        print(f"Turn {turn_number}")
+        print("-" * 20)
+        
+        # Add help line at bottom
+        print(f"\n\n{' ' * (terminal_width - 20)}Type '?' for options")
+    
     def init(self, player_names):
         """
         Initialize the players list with given player names.
@@ -176,7 +215,7 @@ class DouGame:
         print(f"Total turns: {num_of_turns}")
         print("-" * 40)
         
-        # Main game loop
+        # Main game loopgit remote add origin
         for turn in range(1, num_of_turns + 1):
             self.current_turn = turn
             
@@ -196,35 +235,8 @@ class DouGame:
             player_index (int): Index of the player in the players list
             turn_number (int): Current turn number
         """
-        # Clear screen for fresh display
-        self._clear_screen()
-        
-        # Get all other players (non-current players)
-        other_players = [p for i, p in enumerate(self.players) if i != player_index]
-        
-        # Get terminal width for positioning (default to 80 if can't determine)
-        try:
-            terminal_width = os.get_terminal_size().columns
-        except:
-            terminal_width = 80
-        
-        # Show current player's name on left, all other players with scores in brackets on right
-        if len(other_players) == 1:
-            other_players_text = f"[{other_players[0].name}:{other_players[0].get_score()}]"
-        else:
-            other_names_with_scores = ", ".join([f"{p.name}:{p.get_score()}" for p in other_players])
-            other_players_text = f"[{other_names_with_scores}]"
-        
-        spaces_needed = terminal_width - len(player.name) - len(other_players_text)
-        if spaces_needed < 1:
-            spaces_needed = 1
-        
-        print(f"{player.name}{' ' * spaces_needed}{other_players_text}")
-        print(f"Turn {turn_number}")
-        print("-" * 20)
-        
-        # Add help line at bottom
-        print(f"\n\n{' ' * (terminal_width - 20)}Type '?' for options")
+        # Display the player turn screen
+        self._display_player_turn_screen(player, player_index, turn_number)
         
         # Wait for player input
         try:

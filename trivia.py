@@ -52,7 +52,7 @@ class ContinuePlayingOption(MenuOption):
     def execute(self, game, player, player_index, turn_number):
         return game._player_turn(player, player_index, turn_number)
 
-class DouGame:
+class TurnBaseGame:
     def __init__(self):
         self.players = []  # List to hold Player objects
         self.current_turn = 0
@@ -280,7 +280,7 @@ class DouGame:
 
 def main():
     """Main function to demonstrate the game."""
-    game = DouGame()
+    game = TurnBaseGame()
     
     # Example usage
     print("Starting DOU game demo...")

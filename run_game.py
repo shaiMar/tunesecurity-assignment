@@ -1,4 +1,5 @@
 import argparse
+from config import DEFAULT_NUM_TURNS
 
 
 def parse_arguments():
@@ -38,8 +39,8 @@ def parse_arguments():
     parser.add_argument(
         '-n', '--num_questions',
         type=int,
-        default=10,
-        help='Number of questions (default: 10)'
+        default=DEFAULT_NUM_TURNS,
+        help=f'Number of questions (default: {DEFAULT_NUM_TURNS})'
     )
 
     parser.add_argument(

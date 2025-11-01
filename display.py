@@ -4,6 +4,7 @@ Handles all terminal/console display operations.
 """
 
 import os
+from config import DEFAULT_TERMINAL_WIDTH
 
 
 def clear_screen():
@@ -27,11 +28,11 @@ def display_player_turn_screen(player, players, player_index, turn_number):
     # Get all other players (non-current players)
     other_players = [p for i, p in enumerate(players) if i != player_index]
     
-    # Get terminal width for positioning (default to 80 if can't determine)
+    # Get terminal width for positioning (use default from config if can't determine)
     try:
         terminal_width = os.get_terminal_size().columns
     except:
-        terminal_width = 80
+        terminal_width = DEFAULT_TERMINAL_WIDTH
     
     # Show current player's name on left, all other players with scores in brackets on right
     if len(other_players) == 1:

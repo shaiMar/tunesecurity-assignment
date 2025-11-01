@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-"""
-Dou - A 2-Player Command Line Game
 
-A simple turn-based game where two players take turns providing input,
-and at the end, all inputs from each player are displayed.
-"""
 
 import os
 import sys
 from player import Player
 from display import clear_screen, display_player_turn_screen, display_results
+from config import DEFAULT_MAX_SKIPS, DEFAULT_NUM_TURNS
 
 class MenuOption:
     """Base class for menu options."""
@@ -29,6 +25,14 @@ class SkipTurnOption(MenuOption):
         super().__init__("Skip Turn", "Skip this turn")
     
     def execute(self, game, player, player_index, turn_number):
+        # Check if player can skip
+        if player.get_skips_remaining(game.max_skips) <= 0:
+            print(f"\n❌ You have no skips remaining!")
+            input("Press Enter to continue...")
+            return game._player_turn(player, player_index, turn_number)
+        
+        # Use skip
+        player.skip_turn()
         player.add_input("[SKIPPED]")
         return None  # Continue to next player
 
@@ -58,15 +62,21 @@ class TurnBaseGame:
         self.players = []  # List to hold Player objects
         self.current_turn = 0
         self.total_turns = 0
+        self.max_skips = 0  # Maximum skips allowed per player
         self.menu_options = {}  # Dictionary to hold menu options
     
-    def init(self, player_names):
+    def init(self, player_names, max_skips=None):
         """
         Initialize the players list with given player names.
         
         Args:
             player_names (list): List of player names to create Player objects
+            max_skips (int): Maximum number of skips per player (default: from config)
         """
+        if max_skips is None:
+            max_skips = DEFAULT_MAX_SKIPS
+        
+        self.max_skips = max_skips
         self.players = []
         for name in player_names:
             self.players.append(Player(name))
@@ -81,20 +91,25 @@ class TurnBaseGame:
         self.current_turn = 0
         self.total_turns = 0
     
-    def start(self, *player_names, num_of_turns):
+    def start(self, *player_names, num_of_turns=None, max_skips=None):
         """
         Entry point method to start the game.
         
         Args:
             *player_names: Variable number of player names
-            num_of_turns (int): Total number of turns for the game (keyword argument)
+            num_of_turns (int): Total number of turns for the game (default: from config)
+            max_skips (int): Maximum number of skips per player (default: from config)
         """
+        if num_of_turns is None:
+            num_of_turns = DEFAULT_NUM_TURNS
+        if max_skips is None:
+            max_skips = DEFAULT_MAX_SKIPS
         # Validate minimum number of players
         if len(player_names) < 2:
             raise ValueError("Game requires at least 2 players")
         
         # Initialize players using the init function
-        self.init(list(player_names))
+        self.init(list(player_names), max_skips=max_skips)
         self.total_turns = num_of_turns
         
         print(f"\n🎮 Welcome to DOU! 🎮")
@@ -171,7 +186,12 @@ class TurnBaseGame:
         
         # Display options dynamically from menu_options
         for key, option in self.menu_options.items():
-            print(f"{key}. {option.description}")
+            # Add skip count for Skip Turn option
+            if isinstance(option, SkipTurnOption):
+                skips_remaining = player.get_skips_remaining(self.max_skips)
+                print(f"{key}. {option.description} ({skips_remaining} left)")
+            else:
+                print(f"{key}. {option.description}")
         
         print("-" * 30)
         

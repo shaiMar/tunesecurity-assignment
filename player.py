@@ -15,6 +15,7 @@ class Player:
         self.name = name
         self.inputs = []
         self.score = 0
+        self.skips_used = 0
     
     def add_input(self, player_input):
         """
@@ -53,6 +54,7 @@ class Player:
         """Clear all inputs and reset score for this player."""
         self.inputs = []
         self.score = 0
+        self.skips_used = 0
     
     def get_score(self):
         """
@@ -62,6 +64,25 @@ class Player:
             int: The player's current score
         """
         return self.score
+    
+    def get_skips_remaining(self, max_skips):
+        """
+        Get the number of skips remaining for this player.
+        
+        Args:
+            max_skips (int): Maximum number of skips allowed (from game rules)
+        
+        Returns:
+            int: Number of skips remaining
+        """
+        return max_skips - self.skips_used
+    
+    def skip_turn(self):
+        """
+        Mark that the player used a skip.
+        Increments the skips_used counter.
+        """
+        self.skips_used += 1
     
     def __str__(self):
         """String representation of the player."""

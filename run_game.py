@@ -1,5 +1,34 @@
 import argparse
+import json
+import os
 from config import DEFAULT_NUM_TURNS
+from questions_manager import QuestionsManager
+
+
+def get_questions(questions_file=None):
+    """
+    Read questions from a JSON file.
+    
+    Args:
+        questions_file: Path to the questions file. If None, defaults to 'questions.json'
+    
+    Returns:
+        QuestionsManager: An instance of QuestionsManager with loaded questions
+    
+    Raises:
+        FileNotFoundError: If the questions file is not found
+        json.JSONDecodeError: If the file contains invalid JSON
+    """
+    if questions_file is None:
+        questions_file = 'questions.json'
+    
+    if not os.path.exists(questions_file):
+        raise FileNotFoundError(f"Questions file not found: {questions_file}")
+    
+    with open(questions_file, 'r', encoding='utf-8') as f:
+        questions_data = json.load(f)
+    
+    return QuestionsManager(questions_data)
 
 
 def parse_arguments():
@@ -79,5 +108,8 @@ def parse_arguments():
 
 
 if __name__ == "__main__":
-    args = parse_arguments()
-
+    #args = parse_arguments()
+    questions = get_questions()
+    print(questions.get_next_question())
+    print(questions.get_next_question())
+    print(questions.get_next_question())

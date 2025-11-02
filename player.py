@@ -1,9 +1,9 @@
 """
-Player module for Dou game.
+Player module for Trivia game.
 """
 
 class Player:
-    """Represents a player in the DOU game."""
+    """Represents a player in the Trivia game."""
     
     def __init__(self, name):
         """

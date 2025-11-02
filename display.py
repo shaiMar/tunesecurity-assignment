@@ -25,32 +25,23 @@ def display_player_turn_screen(player, players, player_index, turn_number):
     # Clear screen for fresh display
     clear_screen()
     
-    # Get all other players (non-current players)
-    other_players = [p for i, p in enumerate(players) if i != player_index]
-    
     # Get terminal width for positioning (use default from config if can't determine)
     try:
         terminal_width = os.get_terminal_size().columns
     except:
         terminal_width = DEFAULT_TERMINAL_WIDTH
     
-    # Show current player's name on left, all other players with scores in brackets on right
-    if len(other_players) == 1:
-        other_players_text = f"[{other_players[0].name}:{other_players[0].get_score()}]"
-    else:
-        other_names_with_scores = ", ".join([f"{p.name}:{p.get_score()}" for p in other_players])
-        other_players_text = f"[{other_names_with_scores}]"
+    # Show current player's name on left, other players with scores in parentheses on right
+    other_players = [p for i, p in enumerate(players) if i != player_index]
+    other_players_with_scores = ", ".join([f"{p.name}({p.get_score()})" for p in other_players])
     
-    spaces_needed = terminal_width - len(player.name) - len(other_players_text)
+    spaces_needed = terminal_width - len(player.name) - len(other_players_with_scores)
     if spaces_needed < 1:
         spaces_needed = 1
     
-    print(f"{player.name}{' ' * spaces_needed}{other_players_text}")
+    print(f"{player.name}{' ' * spaces_needed}{other_players_with_scores}")
     print(f"Turn {turn_number}")
     print("-" * 20)
-    
-    # Add help line at bottom
-    print(f"\n\n{' ' * (terminal_width - 20)}Type '?' for options")
 
 
 def display_results(players):
@@ -64,7 +55,7 @@ def display_results(players):
     clear_screen()
     
     print("=" * 50)
-    print("🏆 GAME RESULTS 🏆")
+    print("GAME RESULTS")
     print("=" * 50)
     
     # Find the highest score and winners
@@ -72,7 +63,7 @@ def display_results(players):
     winners = [player for player in players if player.get_score() == highest_score]
     
     # Display final scores
-    print("\n🏆 FINAL SCORES 🏆")
+    print("\nFINAL SCORES")
     print("-" * 30)
     
     # Sort players by score (highest first)
@@ -82,23 +73,23 @@ def display_results(players):
         score = player.get_score()
         if player in winners:
             if len(winners) == 1:
-                print(f"{i}. 🥇 {player.name}: {score} points ⭐ WINNER! ⭐")
+                print(f"{i}. {player.name}: {score} points - WINNER!")
             else:
-                print(f"{i}. 🥇 {player.name}: {score} points ⭐ TIE WINNER! ⭐")
+                print(f"{i}. {player.name}: {score} points - TIE WINNER!")
         else:
             print(f"{i}. {player.name}: {score} points")
     
     # Display winner announcement
     if len(winners) == 1:
-        print(f"\n🎉 Congratulations {winners[0].name}! 🎉")
+        print(f"\nCongratulations {winners[0].name}!")
         print(f"You won with {highest_score} points!")
     elif len(winners) > 1:
         winner_names = " and ".join([w.name for w in winners])
-        print(f"\n🎉 It's a tie! 🎉")
+        print(f"\nIt's a tie!")
         print(f"Congratulations {winner_names}!")
         print(f"You all scored {highest_score} points!")
     
     print("\n" + "=" * 50)
-    print("Thanks for playing DOU! 🎮")
+    print("Thanks for playing Trivia!")
     print("=" * 50)
 

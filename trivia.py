@@ -27,7 +27,7 @@ class SkipTurnOption(MenuOption):
     def execute(self, game, player, player_index, turn_number):
         # Check if player can skip
         if player.get_skips_remaining(game.max_skips) <= 0:
-            print(f"\n❌ You have no skips remaining!")
+            print(f"\nYou have no skips remaining!")
             input("Press Enter to continue...")
             return game._player_turn(player, player_index, turn_number)
         
@@ -112,7 +112,7 @@ class TurnBaseGame:
         self.init(list(player_names), max_skips=max_skips)
         self.total_turns = num_of_turns
         
-        print(f"\n🎮 Welcome to DOU! 🎮")
+        print(f"\nWelcome to Trivia!")
         
         # Display all players
         if len(self.players) == 2:
@@ -212,12 +212,129 @@ class TurnBaseGame:
             return self._player_turn(player, player_index, turn_number)
 
 
+class TriviaGame(TurnBaseGame):
+    """Trivia game that extends TurnBaseGame with question asking functionality."""
+    
+    def __init__(self, questions_manager):
+        """
+        Initialize the trivia game with a questions manager.
+        
+        Args:
+            questions_manager (QuestionsManager): Manager for handling trivia questions
+        """
+        super().__init__()
+        self.questions_manager = questions_manager
+    
+    def _player_turn(self, player, player_index, turn_number):
+        """
+        Override player turn to ask trivia questions.
+        
+        Args:
+            player (Player): The current player object
+            player_index (int): Index of the player in the players list
+            turn_number (int): Current turn number
+        """
+        # Display the player turn screen
+        display_player_turn_screen(player, self.players, player_index, turn_number)
+        
+        # Get next question from the questions manager
+        question_data = self.questions_manager.get_next_question()
+        
+        if question_data is None:
+            print("\nNo more questions available!")
+            input("Press Enter to continue...")
+            player.add_input("[NO QUESTION]")
+            return
+        
+        # Display the question
+        print(f"\nCategory: {question_data['category'].upper()}")
+        print(f"Difficulty: {'*' * question_data['difficulty']}")
+        print(f"\n{question_data['question']}")
+        print("\n" + "-" * 40)
+        
+        # Display the answers
+        for i, answer in enumerate(question_data['answers'], 1):
+            print(f"{i}. {answer}")
+        
+        print("-" * 40)
+        
+        # Wait for player input
+        try:
+            player_input = input(f"Your answer (1-{len(question_data['answers'])}) or '?' for options: ").strip()
+            
+            # Handle special '?' input
+            if player_input == '?':
+                return self._handle_help_menu(player, player_index, turn_number)
+            
+            # Validate and check answer
+            try:
+                answer_num = int(player_input)
+                if 1 <= answer_num <= len(question_data['answers']):
+                    # Check if correct
+                    if answer_num - 1 == question_data['correct_answer_index']:
+                        print(f"\nCorrect! Well done {player.name}!")
+                        player.score += 10  # Award points for correct answer
+                        player.add_input(f"[CORRECT: {question_data['answers'][answer_num-1]}]")
+                    else:
+                        correct_answer = question_data['answers'][question_data['correct_answer_index']]
+                        print(f"\nIncorrect! The correct answer was: {correct_answer}")
+                        player.add_input(f"[WRONG: {question_data['answers'][answer_num-1]}]")
+                    
+                    input("\nPress Enter to continue...")
+                else:
+                    print(f"\nInvalid answer! Please select 1-{len(question_data['answers'])}")
+                    input("Press Enter to try again...")
+                    return self._player_turn(player, player_index, turn_number)
+                    
+            except ValueError:
+                print(f"\nInvalid input! Please enter a number 1-{len(question_data['answers'])}")
+                input("Press Enter to try again...")
+                return self._player_turn(player, player_index, turn_number)
+            
+        except KeyboardInterrupt:
+            print(f"\n\nGame interrupted by {player.name}!")
+            display_results(self.players)
+            return
+        except EOFError:
+            print(f"\n\nInput ended unexpectedly for {player.name}!")
+            display_results(self.players)
+            return
+
+
+def start(*player_names, num_of_turns=None, questions=None, max_skips=None):
+    """
+    Convenience function to start a trivia game.
+    
+    Args:
+        *player_names: Variable number of player names
+        num_of_turns (int): Total number of turns for the game (default: from config)
+        questions (QuestionsManager): Questions manager instance
+        max_skips (int): Maximum number of skips per player (default: from config)
+    
+    Returns:
+        TriviaGame: The game instance (can be used for testing)
+    """
+    if questions is None:
+        raise ValueError("Questions manager is required to start the game")
+    
+    if num_of_turns is None:
+        num_of_turns = DEFAULT_NUM_TURNS
+    if max_skips is None:
+        max_skips = DEFAULT_MAX_SKIPS
+    
+    # Create and start the trivia game
+    game = TriviaGame(questions)
+    game.start(*player_names, num_of_turns=num_of_turns, max_skips=max_skips)
+    
+    return game
+
+
 def main():
     """Main function to demonstrate the game."""
     game = TurnBaseGame()
     
     # Example usage
-    print("Starting DOU game demo...")
+    print("Starting Trivia game demo...")
     game.start("Alice", "Bob", "Dalia", num_of_turns=3)
 
 

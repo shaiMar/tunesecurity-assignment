@@ -3,10 +3,6 @@ Configuration file for game parameters.
 Contains default values that can be overridden at runtime.
 """
 
-# Game settings
-DEFAULT_NUM_TURNS = 3
-"""Default number of turns for the game."""
-
 DEFAULT_MAX_SKIPS = 2
 """Default maximum number of times a player can skip their turn."""
 
@@ -14,7 +10,5 @@ DEFAULT_MAX_SKIPS = 2
 DEFAULT_TERMINAL_WIDTH = 80
 """Default terminal width if unable to detect actual width."""
 
-# Scoring settings
-SCORE_CHARACTERS = ['n', 'm', 'v']
-"""Characters that contribute to scoring (case insensitive)."""
+
 

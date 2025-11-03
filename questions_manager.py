@@ -2,6 +2,22 @@ import random
 from typing import Dict, List, Optional
 
 
+DIFFICULTY_MAP = {
+    "easy": 1,
+    "medium": 2,
+    "hard": 3
+}
+
+def convert_web_question(q):
+    """Convert a single question from API format to desired format."""
+    return {
+        "question": q["question"],
+        "right_answer": q["correct_answer"],
+        "wrong_answers": q["incorrect_answers"],
+        "category": q["category"],
+        "difficulty": DIFFICULTY_MAP.get(q["difficulty"], 0)
+    }
+
 class QuestionsManager:
     """
     Class to manage trivia questions loaded from a JSON file.

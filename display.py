@@ -1,12 +1,13 @@
 import os
 
+from config import DEFAULT_TERMINAL_WIDTH
 from player import Players
 
 
 
 
 
-def display_playing_player_bar(players: Players, current_player_index, terminal_width=80):
+def display_playing_player_bar(players: Players, current_player_index, terminal_width=DEFAULT_TERMINAL_WIDTH):
     """
     Display a horizontal bar showing all players with the current player highlighted.
 
@@ -90,9 +91,9 @@ def display_question_and_get_answer(player, question):
 
 def display_game_over(players):
     """Display the game over screen with final scores and winner."""
-    print("\n" + "=" * 80)
+    print("\n" + "=" * DEFAULT_TERMINAL_WIDTH)
     print("GAME OVER!")
-    print("=" * 80)
+    print("=" * DEFAULT_TERMINAL_WIDTH)
     print("\nFinal Scores:")
 
     # Display all players and their scores
@@ -103,7 +104,7 @@ def display_game_over(players):
     max_score = max(player.score for player in players)
     winners = [player for player in players if player.score == max_score]
 
-    print("\n" + "=" * 80)
+    print("\n" + "=" * DEFAULT_TERMINAL_WIDTH)
     if len(winners) > 1:
         winner_names = ", ".join(player.name for player in winners)
         print(f"It's a TIE between: {winner_names}!")

@@ -1,8 +1,12 @@
 import argparse
 import json
 import os
-from config import DEFAULT_NUM_TURNS
-from questions_manager import QuestionsManager
+import ssl
+import urllib.request
+import urllib.error
+
+from config import DEFAULT_TERMINAL_WIDTH
+from questions_manager import QuestionsManager, convert_web_question
 import trivia
 
 
@@ -32,6 +36,46 @@ def get_questions(questions_file=None):
     return QuestionsManager(questions_data)
 
 
+def get_questions_from_web(num_questions):
+    """
+    Fetch questions from the web using Open Trivia Database API.
+
+    Args:
+        num_questions: Number of questions to fetch from the web
+
+    Returns:
+        QuestionsManager: An instance of QuestionsManager with fetched questions
+
+    Raises:
+        Exception: If unable to fetch questions from the web
+    """
+    url = f"https://opentdb.com/api.php?amount={num_questions}"
+
+    try:
+        # Create an SSL context that doesn't verify certificates
+        ssl_context = ssl._create_unverified_context()
+        with urllib.request.urlopen(url, timeout=10, context=ssl_context) as response:
+            data = json.loads(response.read().decode())
+
+            if data['response_code'] != 0:
+                raise Exception(f"API returned error code: {data['response_code']}")
+
+            # Convert the API format to our internal format
+            questions_data = []
+            for item in data['results']:
+                question = convert_web_question(item)
+                questions_data.append(question)
+
+            return QuestionsManager(questions_data)
+
+    except urllib.error.URLError as e:
+        raise Exception(f"Network error while fetching questions: {e}")
+    except json.JSONDecodeError as e:
+        raise Exception(f"Invalid JSON response from API: {e}")
+    except Exception as e:
+        raise Exception(f"Error fetching questions from web: {e}")
+
+
 def parse_arguments():
     """
     Parse command line arguments for the trivia game.
@@ -40,12 +84,15 @@ def parse_arguments():
     - players: Names of players (at least 2 players required)
 
     Optional arguments:
-    - num_questions: Number of questions (default: from config)
     - questions_file: Path to questions file (default: 'questions.json')
+    - web_questions: Number of questions to fetch from the web
+
+    Note: -w and -f cannot be used together
     """
     parser = argparse.ArgumentParser(
         description='Trivia Game - Multiple Players Support',
-        epilog='Example: python run_game.py -p Alice -p Bob -p Charlie -n 5 -f questions.json'
+        epilog='Example: python run_game.py -p Alice -p Bob -p Charlie -f questions.json\n'
+               '         python run_game.py -p Alice -p Bob -w 10'
     )
 
     # Multiple players as optional arguments with -p flag
@@ -57,14 +104,6 @@ def parse_arguments():
         help='Add a player to the game (use -p multiple times for each player). Example: -p Alice -p Bob'
     )
 
-    # Optional arguments
-    parser.add_argument(
-        '-n', '--num_questions',
-        type=int,
-        default=DEFAULT_NUM_TURNS,
-        help=f'Number of questions per player (default: {DEFAULT_NUM_TURNS})'
-    )
-
     parser.add_argument(
         '-f', '--questions_file',
         type=str,
@@ -72,7 +111,20 @@ def parse_arguments():
         help='Path to questions file (default: questions.json)'
     )
 
+    parser.add_argument(
+        '-w', '--web',
+        type=int,
+        default=None,
+        dest='web_questions',
+        help='Fetch this many questions from the web (Open Trivia Database API)'
+    )
+
     args = parser.parse_args()
+
+    # Validate that -w and -f are not used together
+    if args.web_questions is not None and args.questions_file is not None:
+        parser.error("Cannot use -w (web questions) and -f (questions file) together. Choose one option.")
+
 
     # Interactively ask for players if not provided via command line
     if not args.players:  # This handles both None and empty list
@@ -116,13 +168,15 @@ def parse_arguments():
         parser.error("At least 2 players are required to play the game!")
     
     # Print parsed parameters
-    print("\n" + "=" * 50)
+    print("\n" + "=" * DEFAULT_TERMINAL_WIDTH)
     print("Game Configuration:")
-    print("=" * 50)
+    print("=" * DEFAULT_TERMINAL_WIDTH)
     print(f"Players ({len(args.players)}): {', '.join(args.players)}")
-    print(f"Number of Turns: {args.num_questions}")
-    print(f"Questions File: {args.questions_file or 'questions.json (default)'}")
-    print("=" * 50 + "\n")
+    if args.web_questions:
+        print(f"Questions Source: Web (fetching {args.web_questions} questions)")
+    else:
+        print(f"Questions File: {args.questions_file or 'questions.json (default)'}")
+    print("=" * DEFAULT_TERMINAL_WIDTH + "\n")
 
     return args
 
@@ -132,16 +186,21 @@ def start():
     
     This function:
     1. Parses command-line arguments (player names, number of turns, questions file)
-    2. Loads questions from the specified file
+    2. Loads questions from the specified file or web
     3. Initializes and starts the game with all players
     """
     # Parse command-line arguments
     args = parse_arguments()
     
-    # Load questions from file
+    # Load questions from file or web
     try:
-        questions = get_questions(args.questions_file)
-        print(f"Loaded {len(questions.all_questions)} questions successfully!\n")
+        if args.web_questions:
+            print(f"Fetching {args.web_questions} questions from the web...")
+            questions = get_questions_from_web(args.web_questions)
+            print(f"Fetched {len(questions.all_questions)} questions successfully!\n")
+        else:
+            questions = get_questions(args.questions_file)
+            print(f"Loaded {len(questions.all_questions)} questions successfully!\n")
     except FileNotFoundError as e:
         print(f"Error: {e}")
         print("Please provide a valid questions file using -f option.")
@@ -154,17 +213,16 @@ def start():
         return
     
     # Check if we have enough questions for the game
-    total_questions_needed = args.num_questions * len(args.players)
+    total_questions_needed =  len(args.players)
     if len(questions.all_questions) < total_questions_needed:
-        print(f"Warning: You have {len(questions.all_questions)} questions but need {total_questions_needed} for this game.")
-        print(f"   ({args.num_questions} turns x {len(args.players)} players)")
+        print(f"Warning: You have {len(questions.all_questions)} questions but got {len(args.players)} players.")
         print("Game cancelled.")
         return
 
     
     # Start the trivia game with all players and questions
     try:
-        trivia.start(args.players, questions=questions, num_of_turns=args.num_questions)
+        trivia.start(args.players, questions=questions)
         print("\nGame ended successfully!")
     except KeyboardInterrupt:
         print("\n\nGame interrupted by user!")

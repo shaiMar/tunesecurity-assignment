@@ -1,4 +1,4 @@
-from config import DEFAULT_MAX_SKIPS, DEFAULT_NUM_TURNS
+
 from display import display_playing_player_bar, clear_screen, display_and_get_category_choice, display_game_over, \
     display_question_and_get_answer
 from player import Players
@@ -87,15 +87,11 @@ class Trivia():
 
 
 
-def start(player_names, questions:QuestionsManager , num_of_turns=DEFAULT_NUM_TURNS):
+def start(player_names, questions:QuestionsManager):
 
     # Validate minimum number of players
     if len(player_names) < 2:
         raise ValueError("Game requires at least 2 players")
-
-    if num_of_turns <= 0:
-        raise ValueError("Number of turns should be more then 0")
-
 
 
     trivia = Trivia(Players(player_names), questions)

@@ -1,95 +1,112 @@
-"""
-Display module for the game.
-Handles all terminal/console display operations.
-"""
-
 import os
-from config import DEFAULT_TERMINAL_WIDTH
+
+from player import Players
+
+
+
+
+
+def display_playing_player_bar(players: Players, current_player_index, terminal_width=80):
+    """
+    Display a horizontal bar showing all players with the current player highlighted.
+
+    Args:
+        players : List of player names
+        current_player_index (int): Index of the current player in the players list
+        terminal_width (int): Width of the terminal for formatting
+    """
+    bar_elements = []
+    for player in players:
+        if player.idx == current_player_index:
+            bar_elements.append(f"next playing:{player.name}({player.score})\t\t\t\t")  # Highlight current player
+        else:
+            bar_elements.append(f"{player.name}({player.score})")
+
+    bar = "   ".join(bar_elements)
+    print("\n" + "=" * terminal_width)
+    print(f"{bar}")
+    print("=" * terminal_width + "\n")
 
 
 def clear_screen():
-    """Clear the terminal screen."""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    if os.name == 'posix' and 'TERM' in os.environ:
+        os.system('clear')
+    elif os.name != 'posix':
+        os.system('cls')
 
 
-def display_player_turn_screen(player, players, player_index, turn_number):
+
+def display_and_get_category_choice(categories: list) -> str | None:
     """
-    Display the player turn screen with current player, other players, and help info.
-    
+    Display available categories and get user's choice.
+
     Args:
-        player (Player): The current player object
-        players (list): List of all players
-        player_index (int): Index of the player in the players list
-        turn_number (int): Current turn number
+        categories (list): List of available
+    Returns:
+        str: Chosen category
     """
-    # Clear screen for fresh display
-    clear_screen()
-    
-    # Get terminal width for positioning (use default from config if can't determine)
-    try:
-        terminal_width = os.get_terminal_size().columns
-    except:
-        terminal_width = DEFAULT_TERMINAL_WIDTH
-    
-    # Show current player's name on left, other players with scores in parentheses on right
-    other_players = [p for i, p in enumerate(players) if i != player_index]
-    other_players_with_scores = ", ".join([f"{p.name}({p.get_score()})" for p in other_players])
-    
-    spaces_needed = terminal_width - len(player.name) - len(other_players_with_scores)
-    if spaces_needed < 1:
-        spaces_needed = 1
-    
-    print(f"{player.name}{' ' * spaces_needed}{other_players_with_scores}")
-    print(f"Turn {turn_number}")
-    print("-" * 20)
+    print("Available Categories:")
+    for idx, category in enumerate(categories, start=1):
+        print(f"{idx}. {category}")
 
+    while True:
+        choice = input("Select a category by number (or press Enter for random): ").strip()
+        if choice == "":
+            clear_screen()
+            return None  # Random category
+        if choice.isdigit():
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(categories):
+                clear_screen()
+                return categories[choice_idx]
+        print("Invalid choice. Please try again.")
 
-def display_results(players):
-    """
-    Display the final results showing all inputs from each player.
-    
-    Args:
-        players (list): List of all players
-    """
-    # Clear screen for final results
-    clear_screen()
-    
-    print("=" * 50)
-    print("GAME RESULTS")
-    print("=" * 50)
-    
-    # Find the highest score and winners
-    highest_score = max(player.get_score() for player in players)
-    winners = [player for player in players if player.get_score() == highest_score]
-    
-    # Display final scores
-    print("\nFINAL SCORES")
-    print("-" * 30)
-    
-    # Sort players by score (highest first)
-    sorted_players = sorted(players, key=lambda p: p.get_score(), reverse=True)
-    
-    for i, player in enumerate(sorted_players, 1):
-        score = player.get_score()
-        if player in winners:
-            if len(winners) == 1:
-                print(f"{i}. {player.name}: {score} points - WINNER!")
+def display_question_and_get_answer(player, question):
+    """Display the question and get the player's answer."""
+
+    print(f"Difficulty: {question['difficulty']} | Category: {question['category']}\n")
+    print(question['question'])
+    for idx, answer in enumerate(question['answers'], start=1):
+        print(f"{idx}. {answer}")
+
+    print ("\nType the number of your answer or 'skip' to skip this question. 'end' to end the game.")
+    while True:
+        answer = input("Your answer (number): ").strip()
+        if answer.isdigit():
+            answer_idx = int(answer) - 1
+            if 0 <= answer_idx < len(question['answers']):
+                return answer_idx
             else:
-                print(f"{i}. {player.name}: {score} points - TIE WINNER!")
+                print("Invalid answer. Please try again.")
         else:
-            print(f"{i}. {player.name}: {score} points")
-    
-    # Display winner announcement
-    if len(winners) == 1:
-        print(f"\nCongratulations {winners[0].name}!")
-        print(f"You won with {highest_score} points!")
-    elif len(winners) > 1:
-        winner_names = " and ".join([w.name for w in winners])
-        print(f"\nIt's a tie!")
-        print(f"Congratulations {winner_names}!")
-        print(f"You all scored {highest_score} points!")
-    
-    print("\n" + "=" * 50)
-    print("Thanks for playing Trivia!")
-    print("=" * 50)
+            if answer.lower() == 'skip' or answer.lower() == 'end':
+                return answer.lower()
+            else:
+                print("Invalid answer. Please try again.")
 
+
+        print("Invalid choice. Please try again.")
+
+
+def display_game_over(players):
+    """Display the game over screen with final scores and winner."""
+    print("\n" + "=" * 80)
+    print("GAME OVER!")
+    print("=" * 80)
+    print("\nFinal Scores:")
+
+    # Display all players and their scores
+    for player in players:
+        print(f"{player.name}: {player.score} points")
+
+    # Find the winner(s)
+    max_score = max(player.score for player in players)
+    winners = [player for player in players if player.score == max_score]
+
+    print("\n" + "=" * 80)
+    if len(winners) > 1:
+        winner_names = ", ".join(player.name for player in winners)
+        print(f"It's a TIE between: {winner_names}!")
+    else:
+        print(f"🎉 {winners[0].name} WINS! 🎉")
+    print("=" * 80 + "\n")

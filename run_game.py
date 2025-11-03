@@ -141,7 +141,7 @@ def start():
     # Load questions from file
     try:
         questions = get_questions(args.questions_file)
-        print(f"Loaded {questions.available_questions_count} questions successfully!\n")
+        print(f"Loaded {len(questions.all_questions)} questions successfully!\n")
     except FileNotFoundError as e:
         print(f"Error: {e}")
         print("Please provide a valid questions file using -f option.")
@@ -155,8 +155,8 @@ def start():
     
     # Check if we have enough questions for the game
     total_questions_needed = args.num_questions * len(args.players)
-    if questions.available_questions_count < total_questions_needed:
-        print(f"Warning: You have {questions.available_questions_count} questions but need {total_questions_needed} for this game.")
+    if len(questions.all_questions) < total_questions_needed:
+        print(f"Warning: You have {len(questions.all_questions)} questions but need {total_questions_needed} for this game.")
         print(f"   ({args.num_questions} turns x {len(args.players)} players)")
         print("Game cancelled.")
         return
@@ -164,7 +164,7 @@ def start():
     
     # Start the trivia game with all players and questions
     try:
-        trivia.start(*args.players, num_of_turns=args.num_questions, questions=questions)
+        trivia.start(args.players, questions=questions, num_of_turns=args.num_questions)
         print("\nGame ended successfully!")
     except KeyboardInterrupt:
         print("\n\nGame interrupted by user!")

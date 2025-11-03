@@ -57,8 +57,17 @@ class ContinuePlayingOption(MenuOption):
     def execute(self, game, player, player_index, turn_number):
         return game._player_turn(player, player_index, turn_number)
 
-class TurnBaseGame:
-    def __init__(self):
+class TriviaGame:
+    """Trivia game with question asking functionality."""
+    
+    def __init__(self, questions_manager):
+        """
+        Initialize the trivia game with a questions manager.
+        
+        Args:
+            questions_manager (QuestionsManager): Manager for handling trivia questions
+        """
+        self.questions_manager = questions_manager
         self.players = []  # List to hold Player objects
         self.current_turn = 0
         self.total_turns = 0
@@ -124,7 +133,7 @@ class TurnBaseGame:
         print(f"Total turns: {num_of_turns}")
         print("-" * 40)
         
-        # Main game loopgit remote add origin
+        # Main game loop
         for turn in range(1, num_of_turns + 1):
             self.current_turn = turn
             
@@ -134,38 +143,6 @@ class TurnBaseGame:
         
         # Display final results
         display_results(self.players)
-    
-    def _player_turn(self, player, player_index, turn_number):
-        """
-        Handle a single player's turn.
-        
-        Args:
-            player (Player): The current player object
-            player_index (int): Index of the player in the players list
-            turn_number (int): Current turn number
-        """
-        # Display the player turn screen
-        display_player_turn_screen(player, self.players, player_index, turn_number)
-        
-        # Wait for player input
-        try:
-            player_input = input(f"Enter your move: ").strip()
-            
-            # Handle special '?' input
-            if player_input == '?':
-                return self._handle_help_menu(player, player_index, turn_number)
-            
-            # Store the input in the player object
-            player.add_input(player_input)
-            
-        except KeyboardInterrupt:
-            print(f"\n\nGame interrupted by {player.name}!")
-            display_results(self.players)
-            return
-        except EOFError:
-            print(f"\n\nInput ended unexpectedly for {player.name}!")
-            display_results(self.players)
-            return
     
     def _handle_help_menu(self, player, player_index, turn_number):
         """
@@ -210,24 +187,10 @@ class TurnBaseGame:
         except (KeyboardInterrupt, EOFError):
             # If interrupted, continue with the turn
             return self._player_turn(player, player_index, turn_number)
-
-
-class TriviaGame(TurnBaseGame):
-    """Trivia game that extends TurnBaseGame with question asking functionality."""
-    
-    def __init__(self, questions_manager):
-        """
-        Initialize the trivia game with a questions manager.
-        
-        Args:
-            questions_manager (QuestionsManager): Manager for handling trivia questions
-        """
-        super().__init__()
-        self.questions_manager = questions_manager
     
     def _player_turn(self, player, player_index, turn_number):
         """
-        Override player turn to ask trivia questions.
+        Handle a single player's turn with trivia questions.
         
         Args:
             player (Player): The current player object
@@ -239,11 +202,10 @@ class TriviaGame(TurnBaseGame):
         
         # Get next question from the questions manager
         question_data = self.questions_manager.get_next_question()
-        
+
         if question_data is None:
             print("\nNo more questions available!")
             input("Press Enter to continue...")
-            player.add_input("[NO QUESTION]")
             return
         
         # Display the question
@@ -273,24 +235,22 @@ class TriviaGame(TurnBaseGame):
                     # Check if correct
                     if answer_num - 1 == question_data['correct_answer_index']:
                         print(f"\nCorrect! Well done {player.name}!")
-                        player.score += 10  # Award points for correct answer
-                        player.add_input(f"[CORRECT: {question_data['answers'][answer_num-1]}]")
+                        player.score += question_data['difficulty']*10  # Award points for correct answer according to difficulty
                     else:
                         correct_answer = question_data['answers'][question_data['correct_answer_index']]
                         print(f"\nIncorrect! The correct answer was: {correct_answer}")
-                        player.add_input(f"[WRONG: {question_data['answers'][answer_num-1]}]")
-                    
+
                     input("\nPress Enter to continue...")
                 else:
                     print(f"\nInvalid answer! Please select 1-{len(question_data['answers'])}")
-                    input("Press Enter to try again...")
+                    input("Press Enter to try pass the question to the next player...")
                     return self._player_turn(player, player_index, turn_number)
-                    
+
             except ValueError:
                 print(f"\nInvalid input! Please enter a number 1-{len(question_data['answers'])}")
                 input("Press Enter to try again...")
                 return self._player_turn(player, player_index, turn_number)
-            
+
         except KeyboardInterrupt:
             print(f"\n\nGame interrupted by {player.name}!")
             display_results(self.players)
@@ -331,11 +291,17 @@ def start(*player_names, num_of_turns=None, questions=None, max_skips=None):
 
 def main():
     """Main function to demonstrate the game."""
-    game = TurnBaseGame()
+    from questions_manager import QuestionsManager
     
-    # Example usage
+    # Example usage - would need actual questions in a real scenario
     print("Starting Trivia game demo...")
-    game.start("Alice", "Bob", "Dalia", num_of_turns=3)
+    print("Note: This demo requires a questions.json file to run.")
+    
+    # Example of how to use it:
+    # questions_data = [...] # Load from JSON
+    # questions_manager = QuestionsManager(questions_data)
+    # game = TriviaGame(questions_manager)
+    # game.start("Alice", "Bob", "Dalia", num_of_turns=3)
 
 
 if __name__ == "__main__":

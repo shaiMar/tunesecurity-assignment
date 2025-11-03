@@ -45,15 +45,16 @@ def parse_arguments():
     """
     parser = argparse.ArgumentParser(
         description='Trivia Game - Multiple Players Support',
-        epilog='Example: python run_game.py Alice Bob Charlie -n 5 -f questions.json'
+        epilog='Example: python run_game.py -p Alice -p Bob -p Charlie -n 5 -f questions.json'
     )
 
-    # Multiple players as positional arguments
+    # Multiple players as optional arguments with -p flag
     parser.add_argument(
-        'players',
+        '-p', '--player',
         type=str,
-        nargs='*',  # Accept zero or more players (we'll handle interactively if none provided)
-        help='Names of players (at least 2 required). Example: Alice Bob Charlie'
+        action='append',
+        dest='players',
+        help='Add a player to the game (use -p multiple times for each player). Example: -p Alice -p Bob'
     )
 
     # Optional arguments
@@ -74,7 +75,7 @@ def parse_arguments():
     args = parser.parse_args()
 
     # Interactively ask for players if not provided via command line
-    if not args.players:
+    if not args.players:  # This handles both None and empty list
         print("\nWelcome to Trivia Game!")
         print("Please enter player names (at least 2 players required)")
         print("=" * 50)
@@ -157,13 +158,9 @@ def start():
     if questions.available_questions_count < total_questions_needed:
         print(f"Warning: You have {questions.available_questions_count} questions but need {total_questions_needed} for this game.")
         print(f"   ({args.num_questions} turns x {len(args.players)} players)")
-        
-        # Ask user if they want to continue
-        continue_game = input("Do you want to continue anyway? (y/n): ").strip().lower()
-        if continue_game not in ['y', 'yes']:
-            print("Game cancelled.")
-            return
-        print()
+        print("Game cancelled.")
+        return
+
     
     # Start the trivia game with all players and questions
     try:

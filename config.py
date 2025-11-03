@@ -9,6 +9,3 @@ DEFAULT_MAX_SKIPS = 2
 # Display settings
 DEFAULT_TERMINAL_WIDTH = 80
 """Default terminal width if unable to detect actual width."""
-
-
-

@@ -2,6 +2,14 @@
 
 A command-line multiplayer trivia game written in Python. Players take turns answering questions from various categories and compete to achieve the highest score!
 
+## My Specific Comments for This Assignment
+
+
+- **Scope:** This submission includes the entire assignment along with all requested extensions.  
+- **Testing:** I haven’t written tests for this submission, but in a real-world scenario I would include unit tests for key components such as question loading, scoring logic, and player management.  
+- **Design choice:** I prioritized code readability and maintainability over building for overly generic or hypothetical use cases.  
+- **AI assistance:** I let AI handle parts of the error handling and most of the display layer, while the core logic and structure were implemented independently.  
+- **Git workflow:** For this assignment, I used a single main branch. In a real-world scenario, I would use feature and development branches, merging them into the main (or master) branch through pull requests to maintain clean version control and review flow.
 ## Features
 
 - Multiple player support (minimum 2 players)
@@ -82,58 +90,10 @@ python run_game.py
 1. Players take turns answering trivia questions
 2. Each question belongs to a category (history, music, science, etc.)
 3. Players can choose to answer or skip questions (limited skips available)
-4. Correct answers earn points accroding to question difficulty
+4. Correct answers earn points according to question difficulty
 5. The game continues until all questions are answered or skipped
 6. The player with the highest score wins!
 
-## Question File Format
-
-Questions are stored in JSON format. Each question has:
-- `question`: The question text
-- `right_answer`: The correct answer
-- `wrong_answers`: Array of incorrect answers
-- `category`: Question category
-- `difficulty`: Difficulty level (1-3)
-
-Example:
-```json
-[
-  {
-    "question": "What is the capital of France?",
-    "right_answer": "Paris",
-    "wrong_answers": ["London", "Berlin", "Madrid"],
-    "category": "geography",
-    "difficulty": 1
-  }
-]
-```
-
-## Project Structure
-
-```
-├── run_game.py           # Main entry point to start the game
-├── trivia.py             # Core game logic
-├── player.py             # Player management
-├── questions_manager.py  # Question management
-├── display.py            # Display and UI functions
-├── config.py             # Configuration settings
-├── questions.json        # Default question database
-└── requirements.txt      # Project dependencies
-```
-
-## Troubleshooting
-
-**"Questions file not found" error:**
-- Make sure `questions.json` exists in the same directory as `run_game.py`
-- Or specify a valid questions file using `-f` option
-
-**"At least 2 players are required" error:**
-- The game requires at least 2 players to start
-- Add more players using `-p` flag or enter more names in interactive mode
-
-## Contributing
-
-Feel free to add your own questions to `questions.json` or create custom question files!
 
 ## License
 

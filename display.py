@@ -4,10 +4,9 @@ from config import DEFAULT_TERMINAL_WIDTH
 from player import Players
 
 
-
-
-
-def display_playing_player_bar(players: Players, current_player_index, terminal_width=DEFAULT_TERMINAL_WIDTH):
+def display_playing_player_bar(
+    players: Players, current_player_index, terminal_width=DEFAULT_TERMINAL_WIDTH
+):
     """
     Display a horizontal bar showing all players with the current player highlighted.
 
@@ -19,7 +18,9 @@ def display_playing_player_bar(players: Players, current_player_index, terminal_
     bar_elements = []
     for player in players:
         if player.idx == current_player_index:
-            bar_elements.append(f"next playing:{player.name}({player.score})\t\t\t\t")  # Highlight current player
+            bar_elements.append(
+                f"next playing:{player.name}({player.score})\t\t\t\t"
+            )  # Highlight current player
         else:
             bar_elements.append(f"{player.name}({player.score})")
 
@@ -30,11 +31,10 @@ def display_playing_player_bar(players: Players, current_player_index, terminal_
 
 
 def clear_screen():
-    if os.name == 'posix' and 'TERM' in os.environ:
-        os.system('clear')
-    elif os.name != 'posix':
-        os.system('cls')
-
+    if os.name == "posix" and "TERM" in os.environ:
+        os.system("clear")
+    elif os.name != "posix":
+        os.system("cls")
 
 
 def display_and_get_category_choice(categories: list) -> str | None:
@@ -51,7 +51,9 @@ def display_and_get_category_choice(categories: list) -> str | None:
         print(f"{idx}. {category}")
 
     while True:
-        choice = input("Select a category by number (or press Enter for random): ").strip()
+        choice = input(
+            "Select a category by number (or press Enter for random): "
+        ).strip()
         if choice == "":
             clear_screen()
             return None  # Random category
@@ -62,29 +64,31 @@ def display_and_get_category_choice(categories: list) -> str | None:
                 return categories[choice_idx]
         print("Invalid choice. Please try again.")
 
+
 def display_question_and_get_answer(player, question):
     """Display the question and get the player's answer."""
 
     print(f"Difficulty: {question['difficulty']} | Category: {question['category']}\n")
-    print(question['question'])
-    for idx, answer in enumerate(question['answers'], start=1):
+    print(question["question"])
+    for idx, answer in enumerate(question["answers"], start=1):
         print(f"{idx}. {answer}")
 
-    print ("\nType the number of your answer or 'skip' to skip this question. 'end' to end the game.")
+    print(
+        "\nType the number of your answer or 'skip' to skip this question. 'end' to end the game."
+    )
     while True:
         answer = input("Your answer (number): ").strip()
         if answer.isdigit():
             answer_idx = int(answer) - 1
-            if 0 <= answer_idx < len(question['answers']):
+            if 0 <= answer_idx < len(question["answers"]):
                 return answer_idx
             else:
                 print("Invalid answer. Please try again.")
         else:
-            if answer.lower() == 'skip' or answer.lower() == 'end':
+            if answer.lower() == "skip" or answer.lower() == "end":
                 return answer.lower()
             else:
                 print("Invalid answer. Please try again.")
-
 
         print("Invalid choice. Please try again.")
 

@@ -2,11 +2,8 @@ import random
 from typing import Dict, List, Optional
 
 
-DIFFICULTY_MAP = {
-    "easy": 1,
-    "medium": 2,
-    "hard": 3
-}
+DIFFICULTY_MAP = {"easy": 1, "medium": 2, "hard": 3}
+
 
 def convert_web_question(q):
     """Convert a single question from API format to desired format."""
@@ -15,30 +12,33 @@ def convert_web_question(q):
         "right_answer": q["correct_answer"],
         "wrong_answers": q["incorrect_answers"],
         "category": q["category"],
-        "difficulty": DIFFICULTY_MAP.get(q["difficulty"], 0)
+        "difficulty": DIFFICULTY_MAP.get(q["difficulty"], 0),
     }
+
 
 class QuestionsManager:
     """
     Class to manage trivia questions loaded from a JSON file.
     """
+
     def __init__(self, questions_data):
         """
         Initialize the QuestionsManager with a list of question dictionaries.
-        
+
         Args:
             questions_data: List of question dictionaries from JSON
         """
         self.all_questions = questions_data
         self.questions_by_category: Dict[str, List[dict]] = {}
         for question in questions_data:
-            category = question.get('category')
+            category = question.get("category")
             if category not in self.questions_by_category:
                 self.questions_by_category[category] = []
             self.questions_by_category[category].append(question)
 
-        self.category_question_counts = { # This is to hold the count of available questions per category - in case it's 0 - it will be removed
-            category: len(questions) for category, questions in self.questions_by_category.items()
+        self.category_question_counts = {  # This is to hold the count of available questions per category - in case it's 0 - it will be removed
+            category: len(questions)
+            for category, questions in self.questions_by_category.items()
         }
         # Also keep track of total questions
         self.total_available_questions = len(questions_data)
@@ -48,10 +48,10 @@ class QuestionsManager:
         Get the next question from the available category questions.
         Randomly selects a question and swaps it with the last available question
         to avoid asking the same question twice.
-        
+
         Also scrambles all answers (right + wrong) into a single 'answers' list
         and provides the correct answer index.
-        
+
         Returns:
             dict: A question dictionary with keys:
                   - 'question': The question text
@@ -67,8 +67,6 @@ class QuestionsManager:
         if category and category not in self.category_question_counts:
             print(f"No questions available for the '{category}' category.")
             return None
-
-
 
         category_question_list = []
         if not category:
@@ -86,8 +84,10 @@ class QuestionsManager:
 
         # Swap the selected question with the last available question
         last_index = available_questions_count - 1
-        category_question_list[random_index], category_question_list[last_index] = \
-            category_question_list[last_index], category_question_list[random_index]
+        category_question_list[random_index], category_question_list[last_index] = (
+            category_question_list[last_index],
+            category_question_list[random_index],
+        )
 
         # Decrement the available questions count
         self.category_question_counts[category] -= 1
@@ -97,24 +97,26 @@ class QuestionsManager:
 
         # Scramble the answers
         # First, shuffle only the wrong answers
-        wrong_answers = selected_question['wrong_answers'].copy()
+        wrong_answers = selected_question["wrong_answers"].copy()
         random.shuffle(wrong_answers)
 
         # Generate a random index (0-3) to insert the correct answer
         correct_answer_index = random.randint(0, len(wrong_answers))
 
         # Insert the correct answer at the random position
-        all_answers = wrong_answers[:correct_answer_index] + \
-                      [selected_question['right_answer']] + \
-                      wrong_answers[correct_answer_index:]
+        all_answers = (
+            wrong_answers[:correct_answer_index]
+            + [selected_question["right_answer"]]
+            + wrong_answers[correct_answer_index:]
+        )
 
         # Create a new question dict with scrambled answers
         scrambled_question = {
-            'question': selected_question['question'],
-            'answers': all_answers,
-            'correct_answer_index': correct_answer_index,
-            'category': selected_question['category'],
-            'difficulty': selected_question['difficulty']
+            "question": selected_question["question"],
+            "answers": all_answers,
+            "correct_answer_index": correct_answer_index,
+            "category": selected_question["category"],
+            "difficulty": selected_question["difficulty"],
         }
 
         # Return the scrambled question
@@ -128,4 +130,3 @@ class QuestionsManager:
             List[str]: List of category names
         """
         return list(self.category_question_counts.keys())
-
